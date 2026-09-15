@@ -1,34 +1,27 @@
-FROM tiredofit/debian:buster
-LABEL maintainer="Dave Conroy (dave at tiredofit dot ca)"
+FROM debian:bookworm-slim
+LABEL maintainer="SavageCore (talk at savagecore dot uk)"
+
+ARG S6_OVERLAY_VERSION=v2.2.0.3
 
 ### Set defaults
-ENV ASTERISK_VERSION=17.9.4 \
-    BCG729_VERSION=1.0.4 \
-    DONGLE_VERSION=20200610 \
-    G72X_CPUHOST=penryn \
-    G72X_VERSION=0.1 \
-    MONGODB_VERSION=4.2 \
-    PHP_VERSION=5.6 \
-    SPANDSP_VERSION=20180108 \
+ENV ASTERISK_VERSION=22 \
+    FREEPBX_VERSION=17.0 \
+    PHP_VERSION=8.2 \
     RTP_START=18000 \
     RTP_FINISH=20000
 
-### Pin libxml2 packages to Debian repositories
-RUN echo "Package: libxml2*" > /etc/apt/preferences.d/libxml2 && \
-    echo "Pin: release o=Debian,n=buster" >> /etc/apt/preferences.d/libxml2 && \
-    echo "Pin-Priority: 501" >> /etc/apt/preferences.d/libxml2 && \
+### Bootstrap fetch tools (stock slim image ships without them), s6-overlay v2, Sangoma repo
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y ca-certificates curl gnupg wget && \
+    curl -sSLk https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz | tar xfz - --strip 0 -C / && \
+    wget -O - http://deb.freepbx.org/gpg/aptly-pubkey.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/freepbx.gpg && \
+    echo "deb [arch=amd64] http://deb.freepbx.org/freepbx17-prod bookworm main" >> /etc/apt/sources.list && \
+    printf 'Package: *\nPin: origin deb.freepbx.org\nPin-Priority: 900\n' > /etc/apt/preferences.d/99sangoma-fpbx-repository && \
+    printf 'DPkg::options { "--force-confdef"; "--force-confold"; }\n' > /etc/apt/apt.conf.d/00freepbx && \
     APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=TRUE && \
     \
 ### Install dependencies
     set -x && \
-    curl -sSLk https://packages.sury.org/php/apt.gpg | apt-key add - && \
-    curl -sSL https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - && \
-    echo "deb https://deb.nodesource.com/node_10.x $(cat /etc/os-release |grep "VERSION=" | awk 'NR>1{print $1}' RS='(' FS=')') main" > /etc/apt/sources.list.d/nodejs.list && \
-    echo "deb https://packages.sury.org/php/ buster main" > /etc/apt/sources.list.d/deb.sury.org.list && \
-    curl -sSLk https://www.mongodb.org/static/pgp/server-${MONGODB_VERSION}.asc | apt-key add - && \
-    echo "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/${MONGODB_VERSION} main" > /etc/apt/sources.list.d/mongodb-org.list && \
-    echo "deb http://ftp.us.debian.org/debian/ buster-backports main" > /etc/apt/sources.list.d/backports.list && \
-    echo "deb-src http://ftp.us.debian.org/debian/ buster-backports main" >> /etc/apt/sources.list.d/backports.list && \
     apt-get update && \
     apt-get -o Dpkg::Options::="--force-confold" upgrade -y && \
     \
@@ -310,3 +303,5 @@ EXPOSE 80 443 4445 4569 5060/udp 5160/udp 5061 5161 8001 8003 8008 8009 8025 ${R
 
 ### Files add
 ADD install /
+
+ENTRYPOINT ["/init"]
