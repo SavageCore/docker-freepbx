@@ -552,8 +552,6 @@ if var_true "$ENABLE_FOP" ;  then
   /usr/local/fop2/fop2_server -D
 fi
 
-chown asterisk:asterisk /usr/sbin/watson-transcription
-
 silent service apache2 restart
 
 if var_true "$UCP_FIRST" ; then

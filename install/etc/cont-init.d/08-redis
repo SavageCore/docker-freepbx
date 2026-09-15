@@ -1,0 +1,13 @@
+#!/command/with-contenv bash
+
+source /assets/functions/00-container
+# shellcheck disable=SC2034
+PROCESS_NAME="redis"
+
+print_notice "Enabling Redis"
+mkdir -p /data/var/lib/redis
+mkdir -p /var/log/redis
+chown -R redis. /data/var/lib/redis /var/log/redis
+service_start 08-redis
+
+liftoff

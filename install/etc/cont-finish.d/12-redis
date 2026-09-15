@@ -1,0 +1,7 @@
+#!/command/with-contenv bash
+
+source /assets/functions/00-container
+prepare_service single
+
+command -v redis-cli >/dev/null 2>&1 && silent redis-cli shutdown || true
+rm -f /tmp/.container/*-redis*

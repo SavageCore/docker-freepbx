@@ -26,7 +26,7 @@ RUN apt-get update && \
     apt-get update && \
     apt-get -o Dpkg::Options::="--force-confold" upgrade -y && \
     \
-### Install runtime dependencies (stock Bookworm plus Sangoma repo, no Sury/Nodesource/Mongo)
+### Install runtime dependencies (stock Bookworm plus Sangoma repo, no extra repos)
     apt-get install --no-install-recommends -y \
                     apache2 \
                     cron \
