@@ -18,8 +18,8 @@ if [ ! -f /data/.installed ]; then
 fi
 
 ### Container version sanity check
-if [ -f /data/etc/asterisk/.asterisk_version ]; then
-  ASTERISK_VERSION_TMP=$(cat /data/etc/asterisk/.asterisk_version)
+if [ -f /data/etc/asterisk/.asterisk-version ]; then
+  ASTERISK_VERSION_TMP=$(cat /data/etc/asterisk/.asterisk-version)
   ASTERISK_VERSION_TMP=${ASTERISK_VERSION_TMP:0:2}
 
   if [[ ${ASTERISK_VERSION_TMP//./} -lt "16" ]]; then
@@ -32,6 +32,18 @@ if [ -f /data/etc/asterisk/.asterisk_version ]; then
     print_error "****"
     exit 1
   fi
+
+  FREEPBX_VERSION_FULL=$(cat /data/etc/asterisk/.asterisk-version)
+  case "$FREEPBX_VERSION_FULL" in
+    22.*) ;;
+    *)
+      print_error "****"
+      print_error "***** Data volume reports Asterisk ${FREEPBX_VERSION_FULL}, this image is FreePBX 17 / Asterisk 22 only"
+      print_error "***** Migrate via Backup and Restore (see README Migration section), do not boot v15 data in place"
+      print_error "****"
+      exit 1
+      ;;
+  esac
 fi
 
 print_notice "Setting file permissions"
@@ -78,20 +90,12 @@ EOF
   fi
 
   mkdir -p /usr/src/freepbx
-  cd /usr/src || exit
-  curl -ssL https://github.com/FreePBX/framework/archive/release/"${FREEPBX_VERSION}".tar.gz| tar xfz - --strip 1 -C /usr/src/freepbx
-
-  silent sudo -u asterisk gpg --refresh-keys --keyserver hkp://keyserver.ubuntu.com:80
-  silent sudo -u asterisk gpg --import /usr/src/freepbx/amp_conf/htdocs/admin/libraries/BMO/1588A7366BD35B34.key
-  silent sudo -u asterisk gpg --import /usr/src/freepbx/amp_conf/htdocs/admin/libraries/BMO/3DDB2122FE6D84F7.key
-  silent sudo -u asterisk gpg --import /usr/src/freepbx/amp_conf/htdocs/admin/libraries/BMO/86CE877469D2EAD9.key
-  silent sudo -u asterisk gpg --import /usr/src/freepbx/amp_conf/htdocs/admin/libraries/BMO/9F9169F4B33B4659.key
-  silent sudo -u asterisk gpg --import /usr/src/freepbx/amp_conf/htdocs/admin/libraries/BMO/B53D215A755231A3.key
+  curl -ssL "http://mirror.freepbx.org/modules/packages/freepbx/freepbx-${FREEPBX_VERSION}-latest-EDGE.tgz" | tar xfz - --strip 1 -C /usr/src/freepbx
 
   cd /usr/src/freepbx || exit
   cp -R /etc/odbc.ini /usr/src/freepbx/installlib/files/odbc.ini
 
-  touch /etc/asterisk/{acl,agents,amd,app_skel,ari,calendar,cdr,cdr_odbc,cel,cel_odbc,cel_tds,codecs,console,dundi,dongle,hep,modules,motif,ooh323,pjsip_wizard,pjproject,prometheus,res_parking,res_snmp.conf,res_stun_monitor,smdi,statsd,unistim,xmpp}.conf
+  touch /etc/asterisk/{acl,agents,amd,app_skel,ari,calendar,cdr,cdr_odbc,cel,cel_odbc,cel_tds,codecs,console,dundi,hep,modules,motif,ooh323,pjsip_wizard,pjproject,prometheus,res_parking,res_snmp.conf,res_stun_monitor,smdi,statsd,unistim}.conf
   if [ ! -f /etc/asterisk/extensions.lua ]; then
     cat <<EOF > /etc/asterisk/extensions.lua
 extensions = {
@@ -108,45 +112,6 @@ extensions = {
       end;
   }
 }
-EOF
-  fi
-
-  if [ ! -f /etc/asterisk/dongle.conf ]; then
-    mkdir -p /var/lib/asterisk/smsdb
-    chown -RH asterisk. /var/lib/asterisk/smsdb
-
-    cat <<EOF > /etc/asterisk/dongle.conf
-[general]
-interval        = 15
-smsdb           = /var/lib/asterisk/smsdb
-csmsttl         = 600
-
-[defaults]
-context         = default
-group           = 0
-rxgain          = 0
-txgain          = 0
-autodeletesms   = yes
-resetdongle     = yes
-u2diag          = -1
-usecallingpres  = yes
-callingpres     = allowed_passed_screen
-disablesms      = no
-language        = en
-mindtmfgap      = 45
-mindtmfduration = 80
-mindtmfinterval = 200
-callwaiting     = auto
-disable         = no
-initstate       = start
-exten           = +00000000000
-dtmf            = relax
-
-;[dongle0]
-;audio          = /dev/ttyUSB1
-;data           = /dev/ttyUSB2
-;imei           = 000000000000000
-;imsi           = 000000000000000
 EOF
   fi
 
@@ -232,20 +197,17 @@ EOF
   silent fwconsole reload
   chown -RH asterisk. /home/asterisk/.npm
   print_notice "- ucp"
-### UCP fix https://community.freepbx.org/t/ucp-upgrade-error/58273
-  touch /usr/bin/icu-config
-  echo "icuinfo 2>/dev/null|grep \"version\"|sed 's/.*>\(.*\)<.*/\1/g'" > /usr/bin/icu-config
-  chmod +x /usr/bin/icu-config
   check_process
   silent fwconsole ma downloadinstall ucp
 
-  if var_true "$ENABLE_XMPP" ;  then
-    print_notice "- xmpp"
-    silent mongod --unixSocketPrefix=/var/run/mongodb --config /etc/mongod.conf run &
-    check_process
-    silent fwconsole ma downloadinstall xmpp
-    sed -i 's/uri: mongodb:\/\/localhost\/letschat/uri: mongodb:\/\/localhost:27017\/letschat?useNewUrlParser=true/g' "$WEBROOT"/admin/modules/xmpp/node/node_modules/lets-chat/settings.yml
+  silent fwconsole ma installlocal
+  silent fwconsole ma upgradeall
+  if ! silent fwconsole ma refreshsignatures; then
+    silent fwconsole ma refreshsignatures &
   fi
+
+  a2ensite freepbx.conf 2>/dev/null || true
+  a2ensite default-ssl 2>/dev/null || true
 
   if [[ -v INSTALL_ADDITIONAL_MODULES ]] ; then
     print_notice "Attempting to install additional FreePBX modules '${INSTALL_ADDITIONAL_MODULES}'"
@@ -593,10 +555,6 @@ fi
 chown asterisk:asterisk /usr/sbin/watson-transcription
 
 silent service apache2 restart
-
-if var_true "$ENABLE_XMPP" ;  then
-  silent mongod --unixSocketPrefix=/var/run/mongodb --config /etc/mongod.conf --shutdown
-fi
 
 if var_true "$UCP_FIRST" ; then
    print_info "Web server started - container initialization completed - visit your http(s)://...${ADMIN_DIRECTORY} to administer"
