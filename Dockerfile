@@ -302,6 +302,7 @@ RUN apt-get update && \
 EXPOSE 80 443 4445 4569 5060/udp 5160/udp 5061 5161 8001 8003 8008 8009 8025 ${RTP_START}-${RTP_FINISH}/udp
 
 ### Files add
+ADD install-base /
 ADD install /
 
 ENTRYPOINT ["/init"]
