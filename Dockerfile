@@ -103,6 +103,7 @@ RUN apt-get update && \
                     socat \
                     sox \
                     sqlite3 \
+                    ssl-cert \
                     sudo \
                     tcpdump \
                     unixodbc \

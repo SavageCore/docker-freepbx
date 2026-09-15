@@ -8,10 +8,12 @@ PROCESS_NAME="fail2ban"
 if var_true "$ENABLE_FAIL2BAN" ;  then
 	sed -i -e "s/logtarget = \/var\/log\/fail2ban.log/logtarget = \/var\/log\/fail2ban\/fail2ban.log/g" /etc/fail2ban/fail2ban.conf
 	rm -rf /etc/fail2ban/jail.d/*
+	rm -f /etc/fail2ban/jail.local
 	mkdir -p /var/log/asterisk/
 	mkdir -p /var/log/fail2ban/
 	touch /var/log/asterisk/full
   touch /var/log/asterisk/freepbx_security.log
+  touch /var/log/asterisk/fail2ban
 	cat <<EOF > /etc/fail2ban/jail.conf
 
 #[asterisk-iptables]
