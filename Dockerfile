@@ -180,6 +180,7 @@ RUN apt-get update && \
     echo '%zabbix ALL=(asterisk) NOPASSWD:/usr/sbin/asterisk' >> /etc/sudoers && \
     \
 ### Setup for data persistence
+    ln -s x86_64-linux-gnu/asterisk /usr/lib/asterisk && \
     mkdir -p /assets/config/var/lib/ /assets/config/home/ && \
     mv /home/asterisk /assets/config/home/ && \
     mkdir -p /assets/config/var/www/ && \
