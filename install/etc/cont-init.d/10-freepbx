@@ -168,6 +168,9 @@ EOF
   check_process
   silent fwconsole ma downloadinstall framework core
   silent fwconsole ma download cdr
+  print_notice "Locking mini HTTP server to localhost before first reload"
+  silent fwconsole setting HTTPBINDADDRESS 127.0.0.1
+  silent fwconsole setting HTTPTLSBINDADDRESS 127.0.0.1
 
   if var_false "$DB_EMBEDDED" ;  then
 ### CDR Hack
@@ -208,6 +211,12 @@ EOF
   print_notice "Removing unusable commercial modules (reinstall from Module Admin if licensed)"
   check_process
   silent fwconsole ma -f remove endpoint restapps sangomartapi recording_report
+  print_notice "Clearing first-boot one-time notifications"
+  if var_false "$DB_EMBEDDED" ;  then
+    mysql -u"$DB_USER" -p"$DB_PASS" -h"$DB_HOST" -P"$DB_PORT" "$DB_NAME" -e "DELETE FROM notifications WHERE id IN ('key-regenerated','core_bindaddress_changed','VULNERABILITIES');" 2>/dev/null || true
+  else
+    mysql -e "DELETE FROM notifications WHERE id IN ('key-regenerated','core_bindaddress_changed','VULNERABILITIES');" asterisk 2>/dev/null || true
+  fi
   if ! silent fwconsole ma refreshsignatures; then
     silent fwconsole ma refreshsignatures &
   fi
