@@ -84,6 +84,7 @@ RUN apt-get update && \
                     nodejs \
                     npm \
                     odbc-mariadb \
+                    openssh-client \
                     php8.2 \
                     php8.2-bcmath \
                     php8.2-bz2 \

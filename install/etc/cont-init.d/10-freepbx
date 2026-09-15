@@ -217,6 +217,13 @@ EOF
   else
     mysql -e "DELETE FROM notifications WHERE id IN ('key-regenerated','core_bindaddress_changed','VULNERABILITIES');" asterisk 2>/dev/null || true
   fi
+  print_notice "Ensuring asterisk SSH keypair for Backup and Restore"
+  mkdir -p /home/asterisk/.ssh
+  if [ ! -f /home/asterisk/.ssh/id_ecdsa ]; then
+    silent sudo -u asterisk ssh-keygen -t ecdsa -f /home/asterisk/.ssh/id_ecdsa -N ""
+  fi
+  chown -R asterisk:asterisk /home/asterisk/.ssh
+  chmod 700 /home/asterisk/.ssh
   if ! silent fwconsole ma refreshsignatures; then
     silent fwconsole ma refreshsignatures &
   fi
