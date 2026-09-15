@@ -58,12 +58,15 @@ chown -R asterisk. /data
 chmod +x /usr/lib/x86_64-linux-gnu/asterisk/modules/*
 
 ### Check if FreePBX installed
-if [ ! -f "$WEBROOT"/admin/index.php ]; then
+if [ ! -f /data/.installed ]; then
   print_info "New install detected - please wait while we fetch FreePBX - will take up to 30 minutes!"
 
   if [ "$WEBROOT" != "/var/www/html" ]; then
     print_notice "Custom installation webroot defined: '${WEBROOT}'"
   fi
+
+### Packaged freepbx.conf blocks the tarball installer, it is regenerated below
+  rm -f /etc/freepbx.conf
 
   if var_false "$DB_EMBEDDED" ;  then
     cat <<EOF > /etc/odbc.ini
@@ -239,16 +242,18 @@ if [ ! -f /usr/sbin/amportal ]; then
   ln -s /var/lib/asterisk/bin/amportal /usr/sbin/amportal
 fi
 
-if [ ! -f /data/etc/amportal.conf ]; then
-  mkdir -p /data/etc
-  cp -R /etc/amportal.conf /data/etc/
-  rm -f /etc/amportal.conf
-  touch /data/etc/amportal.conf
-  chown asterisk. /data/etc/amportal.conf
-  ln -s /data/etc/amportal.conf /etc/amportal.conf
-else
-  ln -sf /data/etc/amportal.conf /etc/amportal.conf
-  touch /data/etc/amportal.conf
+if [ -f /etc/amportal.conf ] || [ -f /data/etc/amportal.conf ]; then
+  if [ ! -f /data/etc/amportal.conf ]; then
+    mkdir -p /data/etc
+    cp -R /etc/amportal.conf /data/etc/
+    rm -f /etc/amportal.conf
+    touch /data/etc/amportal.conf
+    chown asterisk. /data/etc/amportal.conf
+    ln -s /data/etc/amportal.conf /etc/amportal.conf
+  else
+    ln -sf /data/etc/amportal.conf /etc/amportal.conf
+    touch /data/etc/amportal.conf
+  fi
 fi
 
 if var_true "$DB_EMBEDDED" ;  then
@@ -332,7 +337,9 @@ if [ ! -f "/usr/sbin/fwconsole" ]; then
 fi
 
 chown -RH asterisk. /etc/asterisk
-chown asterisk. /etc/amportal.conf
+if [ -f /etc/amportal.conf ]; then
+  chown asterisk. /etc/amportal.conf
+fi
 
 ### Custom file support
 if [ -d /assets/custom ] ; then

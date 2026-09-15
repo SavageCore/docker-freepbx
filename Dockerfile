@@ -182,6 +182,9 @@ RUN apt-get update && \
 ### Setup for data persistence
     mkdir -p /assets/config/var/lib/ /assets/config/home/ && \
     mv /home/asterisk /assets/config/home/ && \
+    mkdir -p /assets/config/var/www/ && \
+    mv /var/www/html /assets/config/var/www/ && \
+    ln -s /data/var/www/html /var/www/html && \
     ln -s /data/home/asterisk /home/asterisk && \
     mv /var/lib/asterisk /assets/config/var/lib/ && \
     ln -s /data/var/lib/asterisk /var/lib/asterisk && \

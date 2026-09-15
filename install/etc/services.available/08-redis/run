@@ -7,4 +7,4 @@ PROCESS_NAME="redis"
 check_container_initialized
 check_service_initialized init
 chown -R redis: /data/var/lib/redis
-exec redis-server /etc/redis/redis:conf --dir /data/var/lib/redis
+exec redis-server /etc/redis/redis.conf --dir /data/var/lib/redis
