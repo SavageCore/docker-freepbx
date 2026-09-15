@@ -13,7 +13,11 @@ ENV ASTERISK_VERSION=22 \
 ### Bootstrap fetch tools (stock slim image ships without them), s6-overlay v2, Sangoma repo
 RUN apt-get update && \
     apt-get install --no-install-recommends -y ca-certificates curl gnupg wget && \
-    curl -sSLk https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz | tar --extract --gzip --file=- --keep-directory-symlink --strip=0 --directory=/ && \
+    curl -sSLk https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz -o /tmp/s6-overlay.tar.gz && \
+    tar --extract --gzip --file=/tmp/s6-overlay.tar.gz --keep-directory-symlink --strip=0 --directory=/ && \
+    rm -f /usr/bin/execlineb && \
+    tar --extract --gzip --file=/tmp/s6-overlay.tar.gz --keep-directory-symlink --strip=0 --directory=/ ./bin/execlineb && \
+    rm -f /tmp/s6-overlay.tar.gz && \
     ln -s /usr/bin /command && \
     wget -O - http://deb.freepbx.org/gpg/aptly-pubkey.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/freepbx.gpg && \
     echo "deb [arch=amd64] http://deb.freepbx.org/freepbx17-prod bookworm main" >> /etc/apt/sources.list && \
