@@ -224,6 +224,27 @@ EOF
   fi
   chown -R asterisk:asterisk /home/asterisk/.ssh
   chmod 700 /home/asterisk/.ssh
+  print_notice "Detecting container subnet for SIP local networks"
+  DETECTED_CIDR=$(ip -o -4 addr show eth0 2>/dev/null | awk '{print $4}' | head -1)
+  if [ -n "$DETECTED_CIDR" ]; then
+    DETECTED_NET=${DETECTED_CIDR%/*}
+    DETECTED_MASK=$(echo "$DETECTED_CIDR" | cut -d/ -f2)
+    if [ "$DETECTED_MASK" = "16" ]; then
+      DETECTED_BASE=$(echo "$DETECTED_NET" | cut -d. -f1-2).0.0
+    elif [ "$DETECTED_MASK" = "24" ]; then
+      DETECTED_BASE=$(echo "$DETECTED_NET" | cut -d. -f1-3).0
+    else
+      DETECTED_BASE="$DETECTED_NET"
+    fi
+    print_notice "Container subnet detected: ${DETECTED_BASE}/${DETECTED_MASK}"
+    if var_false "$DB_EMBEDDED" ;  then
+      mysql -u"$DB_USER" -p"$DB_PASS" -h"$DB_HOST" -P"$DB_PORT" "$DB_NAME" -e "UPDATE kvstore_Sipsettings SET val='[{\"net\":\"${DETECTED_BASE}\",\"mask\":\"${DETECTED_MASK}\"}]' WHERE \`key\`='localnets';" 2>/dev/null || true
+    else
+      mysql -e "UPDATE kvstore_Sipsettings SET val='[{\"net\":\"${DETECTED_BASE}\",\"mask\":\"${DETECTED_MASK}\"}]' WHERE \`key\`='localnets';" asterisk 2>/dev/null || true
+    fi
+  else
+    print_notice "Could not detect container subnet, leaving SIP local networks unchanged"
+  fi
   if ! silent fwconsole ma refreshsignatures; then
     silent fwconsole ma refreshsignatures &
   fi
