@@ -1,11 +1,7 @@
-# github.com/tiredofit/docker-freepbx
+# github.com/SavageCore/docker-freepbx
 
-[![GitHub release](https://img.shields.io/github/v/tag/tiredofit/docker-freepbx?style=flat-square)](https://github.com/tiredofit/docker-freepbx/releases/latest)
-[![Build Status](https://img.shields.io/github/workflow/status/tiredofit/docker-freepbx/build?style=flat-square)](https://github.com/tiredofit/docker-freepbx/actions?query=workflow%3Abuild)
-[![Docker Stars](https://img.shields.io/docker/stars/tiredofit/alpine.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/tiredofit/alpine/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/tiredofit/alpine.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/tiredofit/alpine/)
-[![Become a sponsor](https://img.shields.io/badge/sponsor-tiredofit-181717.svg?logo=github&style=flat-square)](https://github.com/sponsors/tiredofit)
-[![Paypal Donate](https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square)](https://www.paypal.me/tiredofit)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/SavageCore/docker-freepbx/build?style=flat-square)](https://github.com/SavageCore/docker-freepbx/actions?query=workflow%3Abuild)
+[![Docker Pulls](https://img.shields.io/docker/pulls/savagecore/freepbx.svg)](https://hub.docker.com/r/savagecore/freepbx)
 
 * * *
 
@@ -36,7 +32,11 @@ Asterisk 14 and can no longer use your image, please see [this post](https://git
 
 ## Maintainer
 
-- [Dave Conroy](https://github.com/tiredofit)
+- [SavageCore](https://github.com/SavageCore)
+
+This project is a fork of [tiredofit/docker-freepbx](https://github.com/tiredofit/docker-freepbx)
+by [Dave Conroy](https://github.com/tiredofit), which provided the original
+container layout, init scripts, and documentation this image builds on.
 
 ## Table of Contents
 
@@ -80,10 +80,10 @@ You will also need an external MySQL/MariaDB container, although it can use an i
 Clone this repository and build the image with `docker build -t (imagename) .`
 
 ### Prebuilt Images
-Builds of the image are available on [Docker Hub](https://hub.docker.com/r/tiredofit/freepbx) and is the recommended method of installation.
+Builds of the image are available on [Docker Hub](https://hub.docker.com/r/savagecore/freepbx) and is the recommended method of installation.
 
 ```bash
-docker pull tiredofit/freepbx:(imagetag)
+docker pull savagecore/freepbx:(imagetag)
 ```
 
 The following image tags are available along with their tagged release based on what's written in the [Changelog](CHANGELOG.md):
@@ -133,16 +133,9 @@ The following directories should be mapped for persistent storage in order to ut
 
 #### Base Images used
 
-This image relies on an [Alpine Linux](https://hub.docker.com/r/tiredofit/debian) base image that relies on an [init system](https://github.com/just-containers/s6-overlay) for added capabilities. Outgoing SMTP capabilities are handlded via `msmtp`. Individual container performance monitoring is performed by [zabbix-agent](https://zabbix.org). Additional tools include: `bash`,`curl`,`less`,`logrotate`, `nano`,`vim`.
+This image is based on Debian Bookworm with the [s6-overlay](https://github.com/just-containers/s6-overlay) init system for added capabilities. Outgoing SMTP capabilities are handlded via `msmtp`. Individual container performance monitoring is performed by [zabbix-agent](https://zabbix.org). Additional tools include: `bash`,`curl`,`less`,`logrotate`, `nano`,`vim`.
 
-Be sure to view the following repositories to understand all the customizable options:
-
-| Image                                                  | Description                            |
-| ------------------------------------------------------ | -------------------------------------- |
-| [OS Base](https://github.com/tiredofit/docker-debian/) | Customized Image based on Debian Linux |
-
-Along with the environment variables from the [Base image](https://hub.docker.com/r/tiredofit/debian),
-below is the complete list of available options that can be used to customize your installation.
+The container layout and base init scripts were originally adapted from the [tiredofit/docker-debian](https://github.com/tiredofit/docker-debian/) base image family.
 
 | Parameter                    | Description                                                                                                     | Default                 |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------- |
@@ -236,17 +229,14 @@ docker exec -it (whatever your container name is e.g. freepbx) bash
 These images were built to serve a specific need in a production environment and gradually have had more functionality added based on requests from the community.
 ### Usage
 - The [Discussions board](../../discussions) is a great place for working with the community on tips and tricks of using this image.
-- Consider [sponsoring me](https://github.com/sponsors/tiredofit) personalized support.
 ### Bugfixes
 - Please, submit a [Bug Report](issues/new) if something isn't working as expected. I'll do my best to issue a fix in short order.
 
 ### Feature Requests
 - Feel free to submit a feature request, however there is no guarantee that it will be added, or at what timeline.
-- Consider [sponsoring me](https://github.com/sponsors/tiredofit) regarding development of features.
 
 ### Updates
 - Best effort to track upstream changes, More priority if I am actively using the image in a production environment.
-- Consider [sponsoring me](https://github.com/sponsors/tiredofit) for up to date releases.
 
 ## License
 MIT. See [LICENSE](LICENSE) for more details.
