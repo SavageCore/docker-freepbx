@@ -18,6 +18,7 @@ RUN apt-get update && \
     echo "deb [arch=amd64] http://deb.freepbx.org/freepbx17-prod bookworm main" >> /etc/apt/sources.list && \
     printf 'Package: *\nPin: origin deb.freepbx.org\nPin-Priority: 900\n' > /etc/apt/preferences.d/99sangoma-fpbx-repository && \
     printf 'DPkg::options { "--force-confdef"; "--force-confold"; }\n' > /etc/apt/apt.conf.d/00freepbx && \
+    echo "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list.d/nonfree.list && \
     APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=TRUE && \
     \
 ### Install dependencies
@@ -109,103 +110,39 @@ RUN apt-get update && \
     addgroup --gid 2600 asterisk && \
     adduser --uid 2600 --gid 2600 --gecos "Asterisk User" --disabled-password asterisk && \
     \
-### Build SpanDSP
-    mkdir -p /usr/src/spandsp && \
-    curl -ssLk http://sources.buildroot.net/spandsp/spandsp-${SPANDSP_VERSION}.tar.gz | tar xvfz - --strip 1 -C /usr/src/spandsp && \
-    cd /usr/src/spandsp && \
-    ./configure --prefix=/usr && \
-    make && \
-    make install && \
-    \
-### Build Asterisk
-    cd /usr/src && \
-    mkdir -p asterisk && \
-    curl -sSLk http://downloads.asterisk.org/pub/telephony/asterisk/releases/asterisk-${ASTERISK_VERSION}.tar.gz | tar xvfz - --strip 1 -C /usr/src/asterisk && \
-    cd /usr/src/asterisk/ && \
-    make distclean && \
-    contrib/scripts/get_mp3_source.sh && \
-    cd /usr/src/asterisk && \
-    ./configure \
-        --with-jansson-bundled \
-        --with-pjproject-bundled \
-        --with-bluetooth \
-        --with-codec2 \
-        --with-crypto \
-        --with-gmime \
-        --with-iconv \
-        --with-iksemel \
-        --with-inotify \
-        --with-ldap \
-        --with-libxml2 \
-        --with-libxslt \
-        --with-lua \
-        --with-ogg \
-        --with-opus \
-        --with-resample \
-        --with-spandsp \
-        --with-speex \
-        --with-sqlite3 \
-        --with-srtp \
-        --with-unixodbc \
-        --with-uriparser \
-        --with-vorbis \
-        --with-vpb \
-        && \
-    \
-    make menuselect/menuselect menuselect-tree menuselect.makeopts && \
-    menuselect/menuselect --disable BUILD_NATIVE \
-                          --enable-category MENUSELECT_ADDONS \
-                          --enable-category MENUSELECT_APPS \
-                          --enable-category MENUSELECT_CHANNELS \
-                          --enable-category MENUSELECT_CODECS \
-                          --enable-category MENUSELECT_FORMATS \
-                          --enable-category MENUSELECT_FUNCS \
-                          --enable-category MENUSELECT_RES \
-                          --enable BETTER_BACKTRACES \
-                          --disable MOH-OPSOUND-WAV \
-                          --enable MOH-OPSOUND-GSM \
-                          --disable app_voicemail_imap \
-                          --disable app_voicemail_odbc \
-                          --disable res_digium_phone \
-                          --disable codec_g729a && \
-    make && \
-    make install && \
-    make install-headers && \
-    make config && \
-    \
-#### Add G729 codecs
-    git clone https://github.com/BelledonneCommunications/bcg729 /usr/src/bcg729 && \
-    cd /usr/src/bcg729 && \
-    git checkout tags/$BCG729_VERSION && \
-    ./autogen.sh && \
-    ./configure --prefix=/usr --libdir=/lib && \
-    make && \
-    make install && \
-    \
-    mkdir -p /usr/src/asterisk-g72x && \
-    curl -sSLk https://bitbucket.org/arkadi/asterisk-g72x/get/master.tar.gz | tar xvfz - --strip 1 -C /usr/src/asterisk-g72x && \
-    cd /usr/src/asterisk-g72x && \
-    ./autogen.sh && \
-    ./configure --prefix=/usr --with-bcg729 --enable-$G72X_CPUHOST && \
-    make && \
-    make install && \
-    \
-#### Add USB Dongle support
-    git clone https://github.com/rusxakep/asterisk-chan-dongle /usr/src/asterisk-chan-dongle && \
-    cd /usr/src/asterisk-chan-dongle && \
-    git checkout tags/$DONGLE_VERSION && \
-    ./bootstrap && \
-    ./configure --with-astversion=$ASTERISK_VERSION && \
-    make && \
-    make install && \
-    \
-    ldconfig && \
+### Install Asterisk 22 and FreePBX 17 from Sangoma packages
+    apt-get install -y \
+        asterisk${ASTERISK_VERSION} \
+        asterisk${ASTERISK_VERSION}-addons \
+        asterisk${ASTERISK_VERSION}-addons-bluetooth \
+        asterisk${ASTERISK_VERSION}-addons-core \
+        asterisk${ASTERISK_VERSION}-addons-mysql \
+        asterisk${ASTERISK_VERSION}-addons-ooh323 \
+        asterisk${ASTERISK_VERSION}-core \
+        asterisk${ASTERISK_VERSION}-curl \
+        asterisk${ASTERISK_VERSION}-doc \
+        asterisk${ASTERISK_VERSION}-odbc \
+        asterisk${ASTERISK_VERSION}-ogg \
+        asterisk${ASTERISK_VERSION}-flite \
+        asterisk${ASTERISK_VERSION}-g729 \
+        asterisk${ASTERISK_VERSION}-resample \
+        asterisk${ASTERISK_VERSION}-snmp \
+        asterisk${ASTERISK_VERSION}-speex \
+        asterisk${ASTERISK_VERSION}-sqlite3 \
+        asterisk${ASTERISK_VERSION}-res-digium-phone \
+        asterisk${ASTERISK_VERSION}-voicemail \
+        asterisk${ASTERISK_VERSION}.0-freepbx-asterisk-modules \
+        asterisk-sounds-* \
+        asterisk-version-switch \
+        freepbx17 \
+        sangoma-pbx17 \
+        ffmpeg \
+        libfdk-aac2 && \
     \
 ### Cleanup
     mkdir -p /var/run/fail2ban && \
     cd / && \
     rm -rf /usr/src/* /tmp/* /etc/cron* && \
-    apt-get purge -y $ASTERISK_BUILD_DEPS && \
     apt-get -y autoremove && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
@@ -213,9 +150,19 @@ RUN apt-get update && \
 ### FreePBX hacks
     sed -i -e "s/memory_limit = 128M/memory_limit = 256M/g" /etc/php/${PHP_VERSION}/apache2/php.ini && \
     sed -i 's/\(^upload_max_filesize = \).*/\120M/' /etc/php/${PHP_VERSION}/apache2/php.ini && \
+    sed -i 's/\(^expose_php = \).*/\1Off/' /etc/php/8.2/apache2/php.ini && \
+    sed -i 's/;max_input_vars = 1000/max_input_vars = 2000/' /etc/php/8.2/apache2/php.ini && \
+    sed -i 's/;pcre.jit=1/pcre.jit=0/' /etc/php/8.2/apache2/php.ini && \
+    phpenmod freepbx || true && \
+    mkdir -p /var/lib/php/session && \
+    sed -i 's/^#dateext/dateext/' /etc/logrotate.conf && \
+    sed -i -e 's/^ServerTokens .*/ServerTokens Prod/' -e 's/^ServerSignature .*/ServerSignature Off/' /etc/apache2/conf-available/security.conf && \
     a2disconf other-vhosts-access-log.conf && \
     a2enmod rewrite && \
     a2enmod headers && \
+    a2enmod ssl && \
+    a2enmod expires && \
+    rm -f /var/www/html/index.html && \
     rm -rf /var/log/* && \
     mkdir -p /var/log/asterisk && \
     mkdir -p /var/log/apache2 && \
@@ -238,9 +185,9 @@ RUN apt-get update && \
     mkdir -p /assets/config/var/spool && \
     mv /var/spool/cron /assets/config/var/spool/ && \
     ln -s /data/var/spool/cron /var/spool/cron && \
-    mkdir -p /var/run/mongodb && \
-    rm -rf /var/lib/mongodb && \
-    ln -s /data/var/lib/mongodb /var/lib/mongodb && \
+    mkdir -p /var/lib/redis && \
+    rm -rf /var/lib/redis && \
+    ln -s /data/var/lib/redis /var/lib/redis && \
     ln -s /data/var/run/asterisk /var/run/asterisk && \
     rm -rf /var/spool/asterisk && \
     ln -s /data/var/spool/asterisk /var/spool/asterisk && \
