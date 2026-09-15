@@ -55,7 +55,7 @@ mkdir -p /data/home/asterisk
 mkdir -p /home/asterisk
 ln -sf /data/home/asterisk /home/asterisk
 chown -R asterisk. /data
-chmod +x /usr/lib/asterisk/modules/*
+chmod +x /usr/lib/x86_64-linux-gnu/asterisk/modules/*
 
 ### Check if FreePBX installed
 if [ ! -f "$WEBROOT"/admin/index.php ]; then

@@ -6,7 +6,7 @@ prepare_service 10-freepbx
 PROCESS_NAME="mariadb"
 
 if var_true "$DB_EMBEDDED" ;  then
-  silent service mysql stop
+  silent service mariadb stop
   mkdir -p /var/lib/mysql
 
   if [ ! -d /var/lib/mysql/mysql ]; then
@@ -14,8 +14,8 @@ if var_true "$DB_EMBEDDED" ;  then
     cp -R /assets/config/var/lib/mysql/* /var/lib/mysql
   fi
 
-  chown -R mysql. /var/lib/mysql
-  silent service mysql start
+  chown -R mysql: /var/lib/mysql
+  silent service mariadb start
 else
   print_info "No embedded database detected, skip.."
 fi

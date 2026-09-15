@@ -4,6 +4,6 @@ source /assets/functions/00-container
 prepare_service single
 
 if var_true "$DB_EMBEDDED" ;  then
-	silent service mysql stop
+	silent service mariadb stop
 	rm -f /tmp/.container/*-mariadb*
 fi
