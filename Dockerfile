@@ -13,12 +13,13 @@ ENV ASTERISK_VERSION=22 \
 ### Bootstrap fetch tools (stock slim image ships without them), s6-overlay v2, Sangoma repo
 RUN apt-get update && \
     apt-get install --no-install-recommends -y ca-certificates curl gnupg wget && \
-    curl -sSLk https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz | tar xfz - --strip 0 -C / && \
+    curl -sSLk https://github.com/just-containers/s6-overlay/releases/download/${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz | tar --extract --gzip --file=- --keep-directory-symlink --strip=0 --directory=/ && \
+    ln -s /usr/bin /command && \
     wget -O - http://deb.freepbx.org/gpg/aptly-pubkey.asc | gpg --dearmor --yes -o /etc/apt/trusted.gpg.d/freepbx.gpg && \
     echo "deb [arch=amd64] http://deb.freepbx.org/freepbx17-prod bookworm main" >> /etc/apt/sources.list && \
     printf 'Package: *\nPin: origin deb.freepbx.org\nPin-Priority: 900\n' > /etc/apt/preferences.d/99sangoma-fpbx-repository && \
     printf 'DPkg::options { "--force-confdef"; "--force-confold"; }\n' > /etc/apt/apt.conf.d/00freepbx && \
-    echo "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list.d/nonfree.list && \
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then sed -i 's/^Components: main.*/& contrib non-free non-free-firmware/' /etc/apt/sources.list.d/debian.sources; else echo "deb http://deb.debian.org/debian bookworm main contrib non-free non-free-firmware" >> /etc/apt/sources.list; fi && \
     APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=TRUE && \
     \
 ### Install dependencies
@@ -61,6 +62,7 @@ RUN apt-get update && \
                     liburiparser1 \
                     locales \
                     locales-all \
+                    logrotate \
                     mariadb-client \
                     mariadb-server \
                     mpg123 \
@@ -111,7 +113,7 @@ RUN apt-get update && \
     adduser --uid 2600 --gid 2600 --gecos "Asterisk User" --disabled-password asterisk && \
     \
 ### Install Asterisk 22 and FreePBX 17 from Sangoma packages
-    apt-get install -y \
+    apt-get install -y --ignore-missing -o Dpkg::Options::="--force-confnew" -o Dpkg::Options::="--force-overwrite" \
         asterisk${ASTERISK_VERSION} \
         asterisk${ASTERISK_VERSION}-addons \
         asterisk${ASTERISK_VERSION}-addons-bluetooth \
@@ -193,7 +195,7 @@ RUN apt-get update && \
     ln -s /data/var/spool/asterisk /var/spool/asterisk && \
     rm -rf /etc/asterisk && \
     ln -s /data/etc/asterisk /etc/asterisk && \
-    ln -s /usr/sbin/crontab /usr/bin/crontab
+    ln -sf /usr/sbin/crontab /usr/bin/crontab
 
 ### Networking configuration
 EXPOSE 80 443 4445 4569 5060/udp 5160/udp 5061 5161 8001 8003 8008 8009 8025 ${RTP_START}-${RTP_FINISH}/udp
