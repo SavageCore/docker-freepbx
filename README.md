@@ -205,8 +205,9 @@ PHP 5.6 to 8.2, and Asterisk 17 to 22 (dialplan macros removed).
 1. On the 15 system: Admin, Backup and Restore, run a Full Backup, download the tarball.
 2. Deploy this 17 image with an EMPTY `/data` volume and complete first boot.
 3. On the 17 system: Admin, Backup and Restore, Restore from the 15 tarball.
-4. Audit custom dialplan and third-party modules for Asterisk macro usage (`Macro()`, `MacroExit`) and rewrite as `GoSub` before cutover.
-5. Re-issue/renew certificates (cert paths move with the new Apache/PHP layout) and re-test trunks, routes, voicemail, UCP.
+4. If the 15 system used an external database and the 17 system does not, re-point Settings, Advanced Settings, CDR Database Settings (host, name, user, password) at the new database, then `fwconsole reload` so Asterisk ODBC follows.
+5. Audit custom dialplan and third-party modules for Asterisk macro usage (`Macro()`, `MacroExit`) and rewrite as `GoSub` before cutover.
+6. Re-issue/renew certificates (cert paths move with the new Apache/PHP layout) and re-test trunks, routes, voicemail, UCP.
 
 ## Maintenance
 
