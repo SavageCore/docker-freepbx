@@ -35,7 +35,7 @@ if [ -f /data/etc/asterisk/.asterisk-version ]; then
 
   FREEPBX_VERSION_FULL=$(cat /data/etc/asterisk/.asterisk-version)
   case "$FREEPBX_VERSION_FULL" in
-    22.*) ;;
+    22|22.*) ;;
     *)
       print_error "****"
       print_error "***** Data volume reports Asterisk ${FREEPBX_VERSION_FULL}, this image is FreePBX 17 / Asterisk 22 only"
