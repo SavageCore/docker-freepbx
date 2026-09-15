@@ -202,8 +202,7 @@ RUN apt-get update && \
     rm -rf /var/spool/asterisk && \
     ln -s /data/var/spool/asterisk /var/spool/asterisk && \
     rm -rf /etc/asterisk && \
-    ln -s /data/etc/asterisk /etc/asterisk && \
-    ln -sf /usr/sbin/crontab /usr/bin/crontab
+    ln -s /data/etc/asterisk /etc/asterisk
 
 ### Networking configuration
 EXPOSE 80 443 4445 4569 5060/udp 5160/udp 5061 5161 8001 8003 8008 8009 8025 ${RTP_START}-${RTP_FINISH}/udp
