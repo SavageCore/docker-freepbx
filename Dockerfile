@@ -174,12 +174,8 @@ RUN apt-get update && \
     sed -i 's/;pcre.jit=1/pcre.jit=0/' /etc/php/8.2/apache2/php.ini && \
     phpenmod freepbx || true && \
     mkdir -p /var/lib/php/session && \
-    IONCUBE_SO=$(dpkg -L ioncube-loader-82 2>/dev/null | grep 'ioncube_loader_lin_8\.2\.so' | head -1) && \
-    if [ -n "$IONCUBE_SO" ]; then \
-        for _sapi in apache2 cli; do \
-            echo "zend_extension=${IONCUBE_SO}" > /etc/php/8.2/${_sapi}/conf.d/05-ioncube-loader-82.ini; \
-        done; \
-    fi && \
+    mkdir -p /var/spool/asterisk/incron && \
+    chown asterisk:asterisk /var/spool/asterisk/incron && \
     sed -i 's/^#dateext/dateext/' /etc/logrotate.conf && \
     sed -i -e 's/^ServerTokens .*/ServerTokens Prod/' -e 's/^ServerSignature .*/ServerSignature Off/' /etc/apache2/conf-available/security.conf && \
     a2disconf other-vhosts-access-log.conf && \

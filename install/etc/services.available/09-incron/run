@@ -1,0 +1,11 @@
+#!/command/with-contenv bash
+
+source /assets/functions/00-container
+# shellcheck disable=SC2034
+PROCESS_NAME="incron"
+
+check_container_initialized
+check_service_initialized init
+mkdir -p /var/spool/asterisk/incron
+chown -R asterisk: /var/spool/asterisk/incron
+exec /usr/sbin/incrond -n
