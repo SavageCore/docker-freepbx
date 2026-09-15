@@ -91,10 +91,8 @@ The following image tags are available along with their tagged release based on 
 
 | Version | Container OS | FreePBX Version | Tag      |
 | ------- | ------------ | --------------- | -------- |
-| latest  | Debian       | 15.x            | `latest` |
+| latest  | Debian       | 17.x            | `latest` |
 | 17      | Debian       | 17.x            | `17`     |
-| 15      | Debian       | 15.x            | `15`     |
-| 14      | Debian       | 14.x            | `14`     |
 
 
 ## Configuration
@@ -124,7 +122,6 @@ The following directories should be mapped for persistent storage in order to ut
 | Directory        | Description                                                                                           |
 | ---------------- | ----------------------------------------------------------------------------------------------------- |
 | `/certs`         | Drop your certificates here for TLS w/PJSIP / UCP / HTTPd/ FOP                                        |
-| `/var/www/html`  | FreePBX web files                                                                                     |
 | `/var/log/`      | Apache, Asterisk and FreePBX Log Files                                                                |
 | `/data`          | Data persistence for Asterisk and FreePBX and FOP                                                     |
 | `/assets/custom` | *OPTIONAL* - If you would like to overwrite some files in the container,                              |
@@ -140,7 +137,7 @@ The container layout and base init scripts were originally adapted from the [tir
 | Parameter                    | Description                                                                                                     | Default                 |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | `ADMIN_DIRECTORY`            | What folder to access admin panel                                                                               | `/admin`                |
-| `DB_EMBEDDED`                | Allows you to use an internally provided MariaDB Server e.g. `TRUE` or `FALSE`                                  |                         |
+| `DB_EMBEDDED`                | Allows you to use an internally provided MariaDB Server e.g. `TRUE` or `FALSE`                                  | `TRUE`                  |
 | `DB_HOST`                    | Host or container name of MySQL Server e.g. `freepbx-db`                                                        |                         |
 | `DB_PORT`                    | MySQL Port                                                                                                      | `3306`                  |
 | `DB_NAME`                    | MySQL Database name e.g. `asterisk`                                                                             |                         |
@@ -149,7 +146,6 @@ The container layout and base init scripts were originally adapted from the [tir
 | `ENABLE_FAIL2BAN`            | Enable Fail2ban to block the "bad guys"                                                                         | `TRUE`                  |
 | `ENABLE_FOP`                 | Enable Flash Operator Panel                                                                                     | `FALSE`                 |
 | `ENABLE_SSL`                 | Enable HTTPd to serve SSL requests                                                                              | `FALSE`                 |
-| `ENABLE_VM_TRANSCRIBE`       | Enable Voicemail Transcription with IBM Watson                                                                  | `FALSE`                 |
 | `FOP_DIRECTORY`              | What folder to access FOP                                                                                       | `/fop`                  |
 | `HTTP_PORT`                  | HTTP listening port                                                                                             | `80`                    |
 | `HTTPS_PORT`                 | HTTPS listening port                                                                                            | `443`                   |
@@ -160,12 +156,8 @@ The container layout and base init scripts were originally adapted from the [tir
 | `TLS_CERT`                   | TLS certificate to drop in /certs for HTTPS if no reverse proxy                                                 |                         |
 | `TLS_KEY`                    | TLS Key to drop in /certs for HTTPS if no reverse proxy                                                         |                         |
 | `WEBROOT`                    | If you wish to install to a subfolder use this. Example: `/var/www/html/pbx`                                    | `/var/www/html`         |
-| `VM_TRANSCRIBE_APIKEY`       | API Key from Watson See [tutorial](http://nerdvittles.com/?page_id=25616)                                       |                         |
-| `VM_TRANSCRIBE_MODEL`        | Watson Voice Model - See [here](https://cloud.ibm.com/docs/speech-to-text?topic=speech-to-text-models) for list | `en-GB_NarrowbandModel` |
 
 *`ADMIN_DIRECTORY ` and `FOP_DIRECTORY` may not work correctly if `WEBROOT` is changed or `UCP_FIRST=FALSE`*
-
-If setting `ENABLE_VM_TRANSCRIBE=TRUE` you will need to change the `mailcmd` in Freepbx voicemail settings to `/usr/bin/watson-transcription` and set the API Key.
 
 ### Networking
 
@@ -177,12 +169,15 @@ The following ports are exposed.
 | `443`             | HTTPS       |
 | `4445`            | FOP         |
 | `4569`            | IAX         |
-| `5060`            | PJSIP       |
-| `5160`            | SIP         |
+| `5060/udp`        | PJSIP       |
+| `5160/udp`        | SIP         |
+| `5061`            | PJSIP TLS   |
+| `5161`            | SIP TLS     |
 | `8001`            | UCP         |
 | `8003`            | UCP SSL     |
 | `8008`            | UCP         |
 | `8009`            | UCP SSL     |
+| `8025`            | PM2         |
 | `18000-20000/udp` | RTP ports   |
 
 
