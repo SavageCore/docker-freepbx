@@ -245,6 +245,27 @@ EOF
   else
     print_notice "Could not detect container subnet, leaving SIP local networks unchanged"
   fi
+  print_notice "Detecting external IP for SIP (only fills empty value, never overwrites)"
+  DETECTED_EXTIP=$(curl -sSL --max-time 15 api.ipify.org 2>/dev/null | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+  if [ -n "$DETECTED_EXTIP" ]; then
+    if var_false "$DB_EMBEDDED" ;  then
+      STORED_EXTIP=$(mysql -u"$DB_USER" -p"$DB_PASS" -h"$DB_HOST" -P"$DB_PORT" "$DB_NAME" -N -e "SELECT val FROM kvstore_Sipsettings WHERE \`key\`='externip';" 2>/dev/null | head -1)
+    else
+      STORED_EXTIP=$(mysql -N -e "SELECT val FROM kvstore_Sipsettings WHERE \`key\`='externip';" asterisk 2>/dev/null | head -1)
+    fi
+    if [ -z "$STORED_EXTIP" ] || [ "$STORED_EXTIP" = '""' ]; then
+      print_notice "External IP detected: ${DETECTED_EXTIP}, storing (was empty)"
+      if var_false "$DB_EMBEDDED" ;  then
+        mysql -u"$DB_USER" -p"$DB_PASS" -h"$DB_HOST" -P"$DB_PORT" "$DB_NAME" -e "UPDATE kvstore_Sipsettings SET val='${DETECTED_EXTIP}' WHERE \`key\`='externip';" 2>/dev/null || true
+      else
+        mysql -e "UPDATE kvstore_Sipsettings SET val='${DETECTED_EXTIP}' WHERE \`key\`='externip';" asterisk 2>/dev/null || true
+      fi
+    else
+      print_notice "External IP already set to ${STORED_EXTIP}, detected ${DETECTED_EXTIP}, leaving unchanged"
+    fi
+  else
+    print_notice "Could not detect external IP, leaving SIP external address unchanged"
+  fi
   if ! silent fwconsole ma refreshsignatures; then
     silent fwconsole ma refreshsignatures &
   fi
