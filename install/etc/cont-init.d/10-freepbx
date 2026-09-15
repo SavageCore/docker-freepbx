@@ -205,6 +205,9 @@ EOF
 
   silent fwconsole ma installlocal
   silent fwconsole ma upgradeall
+  print_notice "Removing unusable commercial modules (reinstall from Module Admin if licensed)"
+  check_process
+  silent fwconsole ma -f remove endpoint restapps sangomartapi recording_report
   if ! silent fwconsole ma refreshsignatures; then
     silent fwconsole ma refreshsignatures &
   fi
