@@ -47,6 +47,7 @@ RUN apt-get update && \
                     incron \
                     ipset \
                     iptables \
+                    iptables-persistent \
                     lame \
                     libapache2-mod-php8.2 \
                     libavahi-client3 \
@@ -57,12 +58,14 @@ RUN apt-get update && \
                     libical3 \
                     libicu-dev \
                     libiksemel3 \
+                    libncurses5 \
                     libneon27 \
                     libresample1 \
                     libsnmp40 \
                     libspandsp2 \
                     libspeexdsp1 \
                     libsrtp2-1 \
+                    libsybdb5 \
                     libtiff-tools \
                     libtonezone \
                     libunbound8 \
@@ -151,6 +154,7 @@ RUN apt-get update && \
         freepbx17 \
         ioncube-loader-82 \
         sangoma-pbx17 \
+        sysadmin17 \
         ffmpeg \
         libfdk-aac2 && \
     \
