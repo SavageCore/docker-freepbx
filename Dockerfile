@@ -25,135 +25,85 @@ RUN apt-get update && \
     apt-get update && \
     apt-get -o Dpkg::Options::="--force-confold" upgrade -y && \
     \
-### Install development dependencies
-    ASTERISK_BUILD_DEPS='\
-                        autoconf \
-                        automake \
-                        bison \
-                        binutils-dev \
-                        build-essential \
-                        doxygen \
-                        flex \
-                        graphviz \
-                        libasound2-dev \
-                        libbluetooth-dev \
-                        libc-client2007e-dev \
-                        libcfg-dev \
-                        libcodec2-dev \
-                        libcorosync-common-dev \
-                        libcpg-dev \
-                        libcurl4-openssl-dev \
-                        libedit-dev \
-                        libfftw3-dev \
-                        libgmime-2.6-dev \
-                        libgsm1-dev \
-                        libical-dev \
-                        libiksemel-dev \
-                        libjansson-dev \
-                        libldap2-dev \
-                        liblua5.2-dev \
-                        libmariadb-dev \
-                        libmariadbclient-dev \
-                        libmp3lame-dev \
-                        libncurses5-dev \
-                        libneon27-dev \
-                        libnewt-dev \
-                        libogg-dev \
-                        libopus-dev \
-                        libosptk-dev \
-                        libpopt-dev \
-                        libradcli-dev \
-                        libresample1-dev \
-                        libsndfile1-dev \
-                        libsnmp-dev \
-                        libspeex-dev \
-                        libspeexdsp-dev \
-                        libsqlite3-dev \
-                        libsrtp2-dev \
-                        libssl-dev \
-                        libtiff-dev \
-                        libtool-bin \
-                        libunbound-dev \
-                        liburiparser-dev \
-                        libvorbis-dev \
-                        libvpb-dev \
-                        libxml2-dev \
-                        libxslt1-dev \
-                        portaudio19-dev \
-                        python-dev \
-                        subversion \
-                        unixodbc-dev \
-                        uuid-dev \
-                        zlib1g-dev' && \
-    \
-### Install runtime dependencies
+### Install runtime dependencies (stock Bookworm plus Sangoma repo, no Sury/Nodesource/Mongo)
     apt-get install --no-install-recommends -y \
-                    $ASTERISK_BUILD_DEPS \
                     apache2 \
-                    composer \
+                    cron \
+                    curl \
                     fail2ban \
                     ffmpeg \
                     flite \
-                    freetds-dev \
+                    ghostscript \
                     git \
-                    g++ \
+                    imagemagick \
+                    incron \
+                    ipset \
                     iptables \
                     lame \
+                    libapache2-mod-php8.2 \
                     libavahi-client3 \
+                    libavdevice59 \
                     libbluetooth3 \
                     libc-client2007e \
-                    libcfg7 \
-                    libcpg4 \
-                    libgmime-2.6 \
+                    libgmime-3.0-0 \
                     libical3 \
-                    libiodbc2 \
                     libiksemel3 \
-                    libicu63 \
-                    libicu-dev \
                     libneon27 \
-                    libosptk4 \
                     libresample1 \
-                    libsnmp30 \
+                    libsnmp40 \
+                    libspandsp2 \
                     libspeexdsp1 \
                     libsrtp2-1 \
+                    libtiff-tools \
+                    libtonezone \
                     libunbound8 \
                     liburiparser1 \
-                    libvpb1 \
                     locales \
                     locales-all \
-                    make \
                     mariadb-client \
                     mariadb-server \
-                    mongodb-org \
                     mpg123 \
+                    net-tools \
+                    netcat-openbsd \
+                    nmap \
                     nodejs \
+                    npm \
                     odbc-mariadb \
-                    php${PHP_VERSION} \
-                    php${PHP_VERSION}-curl \
-                    php${PHP_VERSION}-cli \
-                    php${PHP_VERSION}-mysql \
-                    php${PHP_VERSION}-gd \
-                    php${PHP_VERSION}-mbstring \
-                    php${PHP_VERSION}-intl \
-                    php${PHP_VERSION}-bcmath \
-                    php${PHP_VERSION}-ldap \
-                    php${PHP_VERSION}-xml \
-                    php${PHP_VERSION}-zip \
-                    php${PHP_VERSION}-sqlite3 \
+                    php8.2 \
+                    php8.2-bcmath \
+                    php8.2-bz2 \
+                    php8.2-cli \
+                    php8.2-common \
+                    php8.2-curl \
+                    php8.2-gd \
+                    php8.2-intl \
+                    php8.2-ldap \
+                    php8.2-mysql \
+                    php8.2-redis \
+                    php8.2-soap \
+                    php8.2-sqlite3 \
+                    php8.2-ssh2 \
+                    php8.2-xml \
+                    php8.2-zip \
                     php-pear \
-                    pkg-config \
-                    sipsak \
+                    python3-mysqldb \
+                    python-is-python3 \
+                    redis-server \
+                    rsync \
+                    rsyslog \
                     sngrep \
                     socat \
                     sox \
                     sqlite3 \
+                    sudo \
                     tcpdump \
-                    tcpflow \
                     unixodbc \
                     uuid \
+                    vim \
                     wget \
                     whois \
-                    xmlstarlet && \
+                    zabbix-agent \
+                    zip && \
     \
 ### Add users
     addgroup --gid 2600 asterisk && \
