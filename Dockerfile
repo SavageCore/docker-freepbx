@@ -39,6 +39,7 @@ RUN apt-get update && \
                     fail2ban \
                     ffmpeg \
                     flite \
+                    g++ \
                     ghostscript \
                     git \
                     imagemagick \
@@ -53,6 +54,7 @@ RUN apt-get update && \
                     libc-client2007e \
                     libgmime-3.0-0 \
                     libical3 \
+                    libicu-dev \
                     libiksemel3 \
                     libneon27 \
                     libresample1 \
@@ -67,6 +69,7 @@ RUN apt-get update && \
                     locales \
                     locales-all \
                     logrotate \
+                    make \
                     mariadb-client \
                     mariadb-server \
                     mpg123 \
@@ -94,6 +97,7 @@ RUN apt-get update && \
                     php8.2-xml \
                     php8.2-zip \
                     php-pear \
+                    pkg-config \
                     python3-mysqldb \
                     python-is-python3 \
                     redis-server \
