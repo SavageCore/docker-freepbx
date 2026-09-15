@@ -70,6 +70,7 @@ RUN apt-get update && \
                     mariadb-client \
                     mariadb-server \
                     mpg123 \
+                    msmtp \
                     net-tools \
                     netcat-openbsd \
                     nmap \
