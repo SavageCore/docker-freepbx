@@ -36,6 +36,7 @@ RUN apt-get update && \
                     apache2 \
                     cron \
                     curl \
+                    dbus \
                     fail2ban \
                     ffmpeg \
                     flite \
@@ -89,6 +90,7 @@ RUN apt-get update && \
                     php8.2-gd \
                     php8.2-intl \
                     php8.2-ldap \
+                    php8.2-mbstring \
                     php8.2-mysql \
                     php8.2-redis \
                     php8.2-soap \
@@ -147,6 +149,7 @@ RUN apt-get update && \
         asterisk-sounds-* \
         asterisk-version-switch \
         freepbx17 \
+        ioncube-loader-82 \
         sangoma-pbx17 \
         ffmpeg \
         libfdk-aac2 && \
@@ -167,6 +170,12 @@ RUN apt-get update && \
     sed -i 's/;pcre.jit=1/pcre.jit=0/' /etc/php/8.2/apache2/php.ini && \
     phpenmod freepbx || true && \
     mkdir -p /var/lib/php/session && \
+    IONCUBE_SO=$(dpkg -L ioncube-loader-82 2>/dev/null | grep 'ioncube_loader_lin_8\.2\.so' | head -1) && \
+    if [ -n "$IONCUBE_SO" ]; then \
+        for _sapi in apache2 cli; do \
+            echo "zend_extension=${IONCUBE_SO}" > /etc/php/8.2/${_sapi}/conf.d/05-ioncube-loader-82.ini; \
+        done; \
+    fi && \
     sed -i 's/^#dateext/dateext/' /etc/logrotate.conf && \
     sed -i -e 's/^ServerTokens .*/ServerTokens Prod/' -e 's/^ServerSignature .*/ServerSignature Off/' /etc/apache2/conf-available/security.conf && \
     a2disconf other-vhosts-access-log.conf && \
@@ -180,6 +189,10 @@ RUN apt-get update && \
     mkdir -p /var/log/apache2 && \
     mkdir -p /var/log/httpd && \
     update-alternatives --set php /usr/bin/php${PHP_VERSION} && \
+    dbus-uuidgen > /etc/machine-id && \
+    mkdir -p /var/lib/dbus && \
+    cp /etc/machine-id /var/lib/dbus/machine-id && \
+    chmod 644 /etc/machine-id /var/lib/dbus/machine-id && \
     \
 ### Zabbix setup
     echo '%zabbix ALL=(asterisk) NOPASSWD:/usr/sbin/asterisk' >> /etc/sudoers && \
