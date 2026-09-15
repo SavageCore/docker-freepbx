@@ -3,7 +3,7 @@ version: '2'
 services:
   freepbx-app:
     container_name: freepbx-app
-    image: tiredofit/freepbx
+    image: savagecore/freepbx:17
     ports:
      #### If you aren't using a reverse proxy
      #- 80:80
@@ -18,7 +18,7 @@ services:
       - ./certs:/certs
       - ./data:/data
       - ./logs:/var/log
-      - ./data/www:/var/www/html
+     ### Web files ship in the image and persist under /data, do not mount over /var/www/html
      ### Only Enable this option below if you set DB_EMBEDDED=TRUE
      #- ./db:/var/lib/mysql
      ### You can drop custom files overtop of the image if you have made modifications to modules/css/whatever - Use with care

@@ -1,3 +1,23 @@
+## 6.0.0 2026-09-15 <talk at savagecore dot uk>
+
+   ### Added
+      - FreePBX 17 from Sangoma packages
+      - Asterisk 22 from Sangoma packages
+      - Redis service, replaces MongoDB
+      - Debian 12 Bookworm base with s6-overlay v2.2.0.3
+
+   ### Changed
+      - PHP 8.2 from stock Bookworm
+      - Node from stock Bookworm
+
+   ### Removed
+      - MongoDB, XMPP lets-chat, chan-dongle, asterisk-g72x, source builds
+      - IBM Watson transcription script
+
+   ### Notice
+      - No in-place upgrade from 15, migrate via Backup and Restore
+
+
 ## 5.2.0 2022-04-29 <dave at tiredofit dot ca>
 
    ### Added

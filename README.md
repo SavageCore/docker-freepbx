@@ -14,13 +14,16 @@
 Dockerfile to build a [FreePBX](https://www.freepbx.org) - A Voice over IP manager for Asterisk.
 Upon starting this image it will give you a turn-key PBX system for SIP calling.
 
-* Latest release FreePBX 15
-* Latest release Asterisk 17
+* Latest release FreePBX 17
+* Latest release Asterisk 22
+* Installed from Sangoma packages, no source compile
 * Choice of running embedded database or modifies to support external MariaDB Database and only require one DB.
 * Supports data persistence
 * Fail2Ban installed to block brute force attacks
-* Debian Buster base w/ Apache2
-* NodeJS 13.x
+* Debian Bookworm base w/ Apache2
+* NodeJS stock Bookworm
+* PHP 8.2
+* Redis for caching, replaces MongoDB and XMPP lets-chat
 * Automatically installs User Control Panel and displays at first page
 * Option to Install [Flash Operator Panel 2](https://www.fop2.com/)
 * Customizable FOP and Admin URLs
@@ -89,6 +92,7 @@ The following image tags are available along with their tagged release based on 
 | Version | Container OS | FreePBX Version | Tag      |
 | ------- | ------------ | --------------- | -------- |
 | latest  | Debian       | 15.x            | `latest` |
+| 17      | Debian       | 17.x            | `17`     |
 | 15      | Debian       | 15.x            | `15`     |
 | 14      | Debian       | 14.x            | `14`     |
 
@@ -152,7 +156,6 @@ below is the complete list of available options that can be used to customize yo
 | `ENABLE_FAIL2BAN`            | Enable Fail2ban to block the "bad guys"                                                                         | `TRUE`                  |
 | `ENABLE_FOP`                 | Enable Flash Operator Panel                                                                                     | `FALSE`                 |
 | `ENABLE_SSL`                 | Enable HTTPd to serve SSL requests                                                                              | `FALSE`                 |
-| `ENABLE_XMPP`                | Enable XMPP Module with MongoDB                                                                                 | `FALSE`                 |
 | `ENABLE_VM_TRANSCRIBE`       | Enable Voicemail Transcription with IBM Watson                                                                  | `FALSE`                 |
 | `FOP_DIRECTORY`              | What folder to access FOP                                                                                       | `/fop`                  |
 | `HTTP_PORT`                  | HTTP listening port                                                                                             | `80`                    |
@@ -193,6 +196,17 @@ The following ports are exposed.
 ### Fail2Ban
 
 * For fail2ban rules to kickin, the `security` log level needs to be enable for asterisk `full` log file. This can be done from the Settings > Log File Settings > Log files.
+
+## Migration from 15 (skip 16)
+
+There is no in-place upgrade. 15 to 17 crosses Debian Buster to Bookworm,
+PHP 5.6 to 8.2, and Asterisk 17 to 22 (dialplan macros removed).
+
+1. On the 15 system: Admin, Backup and Restore, run a Full Backup, download the tarball.
+2. Deploy this 17 image with an EMPTY `/data` volume and complete first boot.
+3. On the 17 system: Admin, Backup and Restore, Restore from the 15 tarball.
+4. Audit custom dialplan and third-party modules for Asterisk macro usage (`Macro()`, `MacroExit`) and rewrite as `GoSub` before cutover.
+5. Re-issue/renew certificates (cert paths move with the new Apache/PHP layout) and re-test trunks, routes, voicemail, UCP.
 
 ## Maintenance
 
