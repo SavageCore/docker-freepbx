@@ -21,11 +21,7 @@ jobs:
           DOCKER_IMAGE=$(echo "${GITHUB_REPOSITORY/docker-/}" | tr '[:upper:]' '[:lower:]')
           set -x
           if [[ $GITHUB_REF == refs/heads/* ]]; then
-             if [[ $GITHUB_REF == refs/heads/*/* ]] ; then
-               BRANCH="${DOCKER_IMAGE}:$(echo $GITHUB_REF | sed "s|refs/heads/||g" | sed "s|/|-|g")"
-             else
-               BRANCH=${GITHUB_REF#refs/heads/}
-             fi
+             BRANCH=$(echo "${GITHUB_REF#refs/heads/}" | sed "s|/|-|g")
 
             case ${BRANCH} in
               "main" | "master" )
@@ -36,7 +32,7 @@ jobs:
                 ;;
               * )
                   if [ -n "${{ secrets.LATEST }}" ] ; then
-                    if [ "${BRANCHTAG}" = "${{ secrets.LATEST }}" ]; then
+                    if [ "${BRANCH}" = "${{ secrets.LATEST }}" ]; then
                       BRANCHTAG="${DOCKER_IMAGE}:${BRANCH},${DOCKER_IMAGE}:${BRANCH}-latest,${DOCKER_IMAGE}:latest"
                     else
                       BRANCHTAG="${DOCKER_IMAGE}:${BRANCH},${DOCKER_IMAGE}:${BRANCH}-latest"
