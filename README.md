@@ -1,6 +1,6 @@
 # github.com/SavageCore/docker-freepbx
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/SavageCore/docker-freepbx/build?style=flat-square)](https://github.com/SavageCore/docker-freepbx/actions?query=workflow%3Abuild)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/SavageCore/docker-freepbx/main.yml?style=flat-square)](https://github.com/SavageCore/docker-freepbx/actions/workflows/main.yml)
 [![Docker Pulls](https://img.shields.io/docker/pulls/savagecore/freepbx.svg)](https://hub.docker.com/r/savagecore/freepbx)
 
 * * *
