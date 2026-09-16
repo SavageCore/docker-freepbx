@@ -12,6 +12,9 @@ services:
       - 18000-18100:18000-18100/udp
      #### Flash Operator Panel
       - 4445:4445
+     #### UCP Node.js, loopback only for reverse proxy socket.io passthrough
+     #### Change to 8001:8001 for direct browser access (not recommended)
+      - 127.0.0.1:8001:8001
     volumes:
       - ./certs:/certs
       - ./data:/data

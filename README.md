@@ -211,8 +211,17 @@ ProxyPass / http://localhost:8200/
 ProxyPassReverse / http://localhost:8200/
 ```
 
-Direct port publishing (`8001:8001`) also works but exposes the Node
-server; proxying keeps a single TLS entry point.
+Direct port publishing (`8001:8001` instead of the loopback default
+`127.0.0.1:8001:8001` in the example compose) also works but exposes the
+Node server; proxying keeps a single TLS entry point.
+
+The UCP web client derives its socket URL from the `NODEJSHTTPSBINDPORT`
+setting. For same-origin proxying, set it to `443` so the browser targets
+`https://your-host/socket.io/` (no port) instead of `:8003` directly:
+
+```bash
+docker exec freepbx-app fwconsole setting NODEJSHTTPSBINDPORT 443
+```
 
 ## Migration from 15 (skip 16)
 
