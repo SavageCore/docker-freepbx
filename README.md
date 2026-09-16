@@ -218,12 +218,9 @@ Note: the UCP client always targets the HTTPS node port (`:8003`
 currently), so direct access requires 8003 published, not just 8001.
 
 The UCP web client derives its socket URL from the `NODEJSHTTPSBINDPORT`
-setting. For same-origin proxying, set it to `443` so the browser targets
-`https://your-host/socket.io/` (no port) instead of `:8003` directly:
-
-```bash
-docker exec freepbx-app fwconsole setting NODEJSHTTPSBINDPORT 443
-```
+setting (default `8003`). Do NOT set it to `443` to force same-origin
+proxying: the Node server binds that port itself and collides with Apache.
+Keep Node on 8001/8003 and proxy `/socket.io/` to it as above.
 
 ## Migration from 15 (skip 16)
 

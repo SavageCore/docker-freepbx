@@ -2,6 +2,12 @@ services:
   freepbx-app:
     container_name: freepbx-app
     image: savagecore/freepbx:17
+    #### Pin the MAC so Sangoma deployment activation survives restarts.
+    #### Use any locally-administered unicast address, e.g. one generated
+    #### with: printf '02:%02x:%02x:%02x:%02x:%02x\n' $((RANDOM%256)) ...
+    #### Activate once; without a pinned MAC the deployment ID resets
+    #### every container recreate.
+    mac_address: 02:00:00:00:00:01
     ports:
      #### If you aren't using a reverse proxy
      #- 80:80
