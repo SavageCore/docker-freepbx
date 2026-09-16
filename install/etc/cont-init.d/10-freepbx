@@ -210,7 +210,7 @@ EOF
   silent fwconsole ma upgradeall
   print_notice "Removing unusable commercial modules (reinstall from Module Admin if licensed)"
   check_process
-  silent fwconsole ma -f remove endpoint restapps sangomartapi recording_report synologyabb
+  silent fwconsole ma -f remove endpoint restapps sangomartapi recording_report synologyabb dahdiconfig
   print_notice "Clearing first-boot one-time notifications"
   if var_false "$DB_EMBEDDED" ;  then
     mysql -u"$DB_USER" -p"$DB_PASS" -h"$DB_HOST" -P"$DB_PORT" "$DB_NAME" -e "DELETE FROM notifications WHERE id IN ('key-regenerated','core_bindaddress_changed','VULNERABILITIES');" 2>/dev/null || true
