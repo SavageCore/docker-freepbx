@@ -13,7 +13,8 @@ services:
      #### Flash Operator Panel
       - 4445:4445
      #### UCP Node.js, loopback only for reverse proxy socket.io passthrough
-     #### Change to 8001:8001 for direct browser access (not recommended)
+     #### For direct browser access to UCP Node (https://host:8003),
+     #### change to 8001:8001 plus 8003:8003 (not recommended)
       - 127.0.0.1:8001:8001
     volumes:
       - ./certs:/certs
