@@ -185,6 +185,35 @@ The following ports are exposed.
 
 * For fail2ban rules to kickin, the `security` log level needs to be enable for asterisk `full` log file. This can be done from the Settings > Log File Settings > Log files.
 
+### Reverse proxying (UCP)
+
+If you terminate TLS on a reverse proxy (recommended) instead of exposing
+the container directly, the UCP web client needs its Node.js backend.
+The browser connects to `/socket.io/` on the same host, so proxy that
+path to the container's UCP Node port (8001). Plain HTTP proxying is not
+enough: socket.io upgrades to websockets, so the proxy must handle the
+`Upgrade` header. Apache example (needs `proxy`, `proxy_http`,
+`proxy_wstunnel`, `rewrite`):
+
+```apache
+ProxyPreserveHost On
+
+# UCP Node.js (websocket + long-poll fallback). Must come BEFORE the
+# generic backend ProxyPass, otherwise UCP fails with "xhr poll error".
+RewriteEngine On
+RewriteCond %{HTTP:Upgrade} websocket [NC]
+RewriteCond %{HTTP:Connection} upgrade [NC]
+RewriteRule ^/socket.io/(.*) ws://localhost:8001/socket.io/$1 [P,L]
+ProxyPass /socket.io/ http://localhost:8001/socket.io/
+ProxyPassReverse /socket.io/ http://localhost:8001/socket.io/
+
+ProxyPass / http://localhost:8200/
+ProxyPassReverse / http://localhost:8200/
+```
+
+Direct port publishing (`8001:8001`) also works but exposes the Node
+server; proxying keeps a single TLS entry point.
+
 ## Migration from 15 (skip 16)
 
 There is no in-place upgrade. 15 to 17 crosses Debian Buster to Bookworm,
