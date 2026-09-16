@@ -26,6 +26,8 @@ services:
       - ./certs:/certs
       - ./data:/data
       - ./logs:/var/log
+     ### Backups at ./backups on the host (same files as /data/var/spool/asterisk/backup inside)
+      - ./backups:/var/spool/asterisk/backup
      ### Web files ship in the image and persist under /data, do not mount over /var/www/html
      ### Only Enable this option below if you set DB_EMBEDDED=TRUE
      #- ./db:/var/lib/mysql
