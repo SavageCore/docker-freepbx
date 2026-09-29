@@ -121,7 +121,7 @@ The following directories should be mapped for persistent storage in order to ut
 
 | Directory        | Description                                                                                           |
 | ---------------- | ----------------------------------------------------------------------------------------------------- |
-| `/certs`         | Drop your certificates here for TLS w/PJSIP / UCP / HTTPd/ FOP                                        |
+| `/certs`         | TLS certs for Apache HTTPS / FOP. Asterisk PJSIP (5061) + HTTP (8089) sync from here (fullchain, see TLS below) |
 | `/var/log/`      | Apache, Asterisk and FreePBX Log Files                                                                |
 | `/data`          | Data persistence for Asterisk and FreePBX and FOP                                                     |
 | `/assets/custom` | *OPTIONAL* - If you would like to overwrite some files in the container,                              |
@@ -153,8 +153,10 @@ The container layout and base init scripts were originally adapted from the [tir
 | `RTP_START`                  | What port to start RTP transmissions                                                                            | `18000`                 |
 | `RTP_FINISH`                 | What port to start RTP transmissions                                                                            | `20000`                 |
 | `UCP_FIRST`                  | Load UCP as web frontpage `TRUE` or `FALSE`                                                                     | `TRUE`                  |
-| `TLS_CERT`                   | TLS certificate to drop in /certs for HTTPS if no reverse proxy                                                 |                         |
-| `TLS_KEY`                    | TLS Key to drop in /certs for HTTPS if no reverse proxy                                                         |                         |
+| `TLS_CERT`                   | TLS certificate filename in /certs for HTTPS (must be fullchain for Asterisk sync)                    | `cert.pem`              |
+| `TLS_KEY`                    | TLS Key filename in /certs for HTTPS                                                                  | `key.pem`               |
+| `ASTERISK_TLS_SYNC`          | Sync /certs (or LetsEncrypt) into Asterisk MainCert + integration certs on boot                       | `TRUE`                  |
+| `ASTERISK_LE_DOMAIN`         | Optional: sync directly from `/etc/letsencrypt/live/<domain>/` (requires ro mount)                    |                         |
 | `WEBROOT`                    | If you wish to install to a subfolder use this. Example: `/var/www/html/pbx`                                    | `/var/www/html`         |
 
 *`ADMIN_DIRECTORY ` and `FOP_DIRECTORY` may not work correctly if `WEBROOT` is changed or `UCP_FIRST=FALSE`*
@@ -184,6 +186,34 @@ The following ports are exposed.
 ### Fail2Ban
 
 * For fail2ban rules to kickin, the `security` log level needs to be enable for asterisk `full` log file. This can be done from the Settings > Log File Settings > Log files.
+
+### TLS certificates (Apache vs Asterisk)
+
+Three separate TLS terminators, don't confuse them:
+
+* Apache `443` / FOP: reads `/certs/$TLS_CERT` + `/certs/$TLS_KEY` directly.
+* Asterisk PJSIP `5061`: reads `/etc/asterisk/keys/MainCert.{crt,key,pem}` (Certman `MainCert`).
+* Asterisk HTTP `8089` (ARI/UCP): reads `/etc/asterisk/keys/integration/certificate.pem` + `webserver.key`.
+
+On boot, when `ASTERISK_TLS_SYNC=TRUE` (default), the container copies the
+full chain into `MainCert.*` + `integration/*`, fixes ownership, and runs
+`fwconsole certificates --updateall`:
+
+* If `ASTERISK_LE_DOMAIN` is set and `/etc/letsencrypt/live/<domain>/`
+  is mounted read-only, syncs from `fullchain.pem` / `privkey.pem`.
+* Otherwise syncs from `/certs/$TLS_CERT` / `/certs/$TLS_KEY`.
+
+Rules:
+
+* `/certs/cert.pem` must contain the **full chain** (`fullchain.pem`),
+  never leaf-only `cert.pem` — `5061` serves `MainCert.crt` verbatim and
+  strict phones fail with an incomplete chain (1 cert instead of 3).
+* The auto-generated self-signed `CN=*` placeholder in `/certs` is Apache-only
+  and is skipped for the Asterisk sync.
+* Renewals: Certbot renewals don't restart the container, so add a host
+  deploy hook (`/etc/letsencrypt/renewal-hooks/deploy/`) that copies
+  `fullchain.pem` → `./certs/cert.pem`, `privkey.pem` → `./certs/key.pem`
+  and reloads PJSIP (`docker exec freepbx-app asterisk -rx "module reload res_pjsip.so"`).
 
 ### Reverse proxying (UCP)
 

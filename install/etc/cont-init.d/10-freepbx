@@ -497,7 +497,7 @@ if [ "$VIRTUAL_PROTO" = "https" ] || var_true "$ENABLE_SSL" ;  then
   print_notice "Enabling SSL"
   mkdir -p /certs
 
-  if [ ! -f /certs/"${TLS_CERT}" ] && [ ! -f /certs/"${TLS_KEY}" ]; then
+  if [ ! -f /certs/"${TLS_CERT}" ] || [ ! -f /certs/"${TLS_KEY}" ]; then
     print_warn "No SSL certs found, autogenerating self-signed - WebRTC will not work with a self-signed certificate!"
     cat <<EOF > /tmp/openssl.cnf
 [ req ]
@@ -561,6 +561,51 @@ EOF
 </VirtualHost>
 
 EOF
+fi
+
+### Sync host/LE certs into Asterisk (PJSIP 5061 + HTTP 8089).
+### /certs is Apache/FOP only - Asterisk reads /etc/asterisk/keys/MainCert.*
+### (PJSIP TLS) and /etc/asterisk/keys/integration/* (HTTP TLS).
+### cert_file must serve the full chain (leaf + intermediate), otherwise
+### strict TLS clients fail: use fullchain.pem, never cert.pem alone.
+if var_true "${ASTERISK_TLS_SYNC:-TRUE}" ; then
+  AST_SRC_CERT=""
+  AST_SRC_KEY=""
+  if [ -n "${ASTERISK_LE_DOMAIN:-}" ] && [ -f "/etc/letsencrypt/live/${ASTERISK_LE_DOMAIN}/fullchain.pem" ] && [ -f "/etc/letsencrypt/live/${ASTERISK_LE_DOMAIN}/privkey.pem" ]; then
+    AST_SRC_CERT="/etc/letsencrypt/live/${ASTERISK_LE_DOMAIN}/fullchain.pem"
+    AST_SRC_KEY="/etc/letsencrypt/live/${ASTERISK_LE_DOMAIN}/privkey.pem"
+    print_notice "Syncing Asterisk TLS certs from LetsEncrypt domain ${ASTERISK_LE_DOMAIN}"
+  elif [ -f "/certs/${TLS_CERT:-cert.pem}" ] && [ -f "/certs/${TLS_KEY:-key.pem}" ]; then
+    # Skip the auto-generated self-signed placeholder (CN=*) - it is for
+    # Apache only and must never overwrite a valid Asterisk MainCert.
+    if openssl x509 -in "/certs/${TLS_CERT:-cert.pem}" -noout -subject 2>/dev/null | grep -q "CN = \*"; then
+      print_warn "Skipping Asterisk TLS sync: /certs/${TLS_CERT:-cert.pem} is self-signed placeholder"
+    else
+      AST_SRC_CERT="/certs/${TLS_CERT:-cert.pem}"
+      AST_SRC_KEY="/certs/${TLS_KEY:-key.pem}"
+      print_notice "Syncing Asterisk TLS certs from /certs"
+    fi
+  fi
+  if [ -n "$AST_SRC_CERT" ] && [ -d /etc/asterisk/keys ]; then
+    cp "$AST_SRC_KEY" /etc/asterisk/keys/MainCert.key
+    cp "$AST_SRC_CERT" /etc/asterisk/keys/MainCert.crt
+    cp "$AST_SRC_CERT" /etc/asterisk/keys/MainCert.pem
+    if [ -d /etc/asterisk/keys/integration ]; then
+      cp "$AST_SRC_CERT" /etc/asterisk/keys/integration/certificate.pem
+      cp "$AST_SRC_CERT" /etc/asterisk/keys/integration/webserver.crt
+      cp "$AST_SRC_KEY" /etc/asterisk/keys/integration/webserver.key
+      chown asterisk:asterisk /etc/asterisk/keys/integration/certificate.pem /etc/asterisk/keys/integration/webserver.crt /etc/asterisk/keys/integration/webserver.key
+      chmod 644 /etc/asterisk/keys/integration/certificate.pem /etc/asterisk/keys/integration/webserver.crt
+      chmod 600 /etc/asterisk/keys/integration/webserver.key
+    fi
+    chown asterisk:asterisk /etc/asterisk/keys/MainCert.key /etc/asterisk/keys/MainCert.crt /etc/asterisk/keys/MainCert.pem
+    chmod 600 /etc/asterisk/keys/MainCert.key
+    chmod 644 /etc/asterisk/keys/MainCert.crt /etc/asterisk/keys/MainCert.pem
+    if [ -x /usr/sbin/fwconsole ]; then
+      silent fwconsole certificates --updateall || true
+    fi
+    print_notice "Asterisk TLS certs refreshed (fullchain)"
+  fi
 fi
 
 ### Write ports.conf
