@@ -26,6 +26,9 @@ services:
       - ./certs:/certs
       - ./data:/data
       - ./logs:/var/log
+     ### Optional: mount host LetsEncrypt so Asterisk PJSIP/HTTP certs can sync
+     ### directly via ASTERISK_LE_DOMAIN instead of copying into ./certs:
+     #- /etc/letsencrypt:/etc/letsencrypt:ro
      ### Backups at ./backups on the host (same files as /data/var/spool/asterisk/backup inside)
       - ./backups:/var/spool/asterisk/backup
      ### Web files ship in the image and persist under /data, do not mount over /var/www/html
@@ -60,8 +63,14 @@ services:
       - DB_PASS=asteriskpass
     
      ### If you are using TLS Support for Apache to listen on 443 in the container drop them in /certs and set these:
-     #- TLS_CERT=cert.pem
-     #- TLS_KEY=key.pem
+      #- TLS_CERT=cert.pem
+      #- TLS_KEY=key.pem
+     ### Asterisk PJSIP (5061) + HTTP (8089) sync from /certs by default.
+     ### /certs/cert.pem must be the full chain (fullchain.pem), not cert.pem
+     ### leaf-only, or strict TLS clients fail. To sync directly from host
+     ### LetsEncrypt on renewal, mount /etc/letsencrypt above and set:
+     #- ASTERISK_LE_DOMAIN=hostname.example.com
+     #- ASTERISK_TLS_SYNC=TRUE
      
     restart: always
     networks:
